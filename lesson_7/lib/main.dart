@@ -3,25 +3,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class Entry {
-  String api;
-  String description;
-  String auth;
-  bool https;
-  String cors;
-  String link;
-  String category;
+class User {
+  int id;
+  String email;
+  String firstName;
+  String lastName;
+  String avatar;
 
-  Entry(this.api, this.description, this.auth, this.https, this.cors, this.link, this.category);
+  User(this.id, this.email, this.firstName, this.lastName, this.avatar);
 
-  Entry.fromJson(Map<String, dynamic> json)
-      : api = json['API'],
-        description = json['Description'],
-        auth = json['Auth'],
-        https = json['HTTPS'],
-        cors = json['Cors'],
-        link = json['Link'],
-        category = json['Category'];
+  User.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        email = json['email'],
+        firstName = json['first_name'],
+        lastName = json['last_name'],
+        avatar = json['avatar'];
 }
 
 class TestHttp extends StatefulWidget {
@@ -36,10 +32,12 @@ class TestHttp extends StatefulWidget {
 class TestHttpState extends State<TestHttp> {
   final _formKey = GlobalKey<FormState>();
 
-  Entry _entry;
+  String _empId, _avatarUrl;
+  User _user;
 
   @override
   void initState() {
+    _empId = widget.empId;
     super.initState();
   } //initState
 
@@ -47,13 +45,12 @@ class TestHttpState extends State<TestHttp> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save(); //update form data
       print('Try send request');
-      http.get('https://api.publicapis.org/entries').then((response) {
+      http.get('https://reqres.in/api/users/$_empId').then((response) {
         print(response.body);
-        var entriesMap = jsonDecode(response.body);
-        var first = (entriesMap['entries'] as List).first;
-        print(first.toString());
-        _entry = Entry.fromJson(first);
-
+        var employeeMap = jsonDecode(response.body);
+        _user = User.fromJson(employeeMap['data']);
+        print('${_user.lastName}');
+        _avatarUrl = _user.avatar;
 
         setState(() {}); //reBuildWidget
       }).catchError((error) {
@@ -68,43 +65,42 @@ class TestHttpState extends State<TestHttp> {
         key: _formKey,
         child: SingleChildScrollView(
             child: Column(
-              children: <Widget>[
-
-                RaisedButton(
-                    child: Text('Get first entry'),
-                    onPressed: _sendRequestGet,
-                    padding: EdgeInsets.all(10.0)),
-                SizedBox(height: 20.0),
-                Text('API',
-                    style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.api : ''),
-                SizedBox(height: 20.0),
-                Text('Description',
-                    style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.description : ''),
-                SizedBox(height: 20.0),
-                Text('Auth',
-                    style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.auth : ''),
-                SizedBox(height: 20.0),
-                Text('HTTPS',
-                    style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.https : ''),
-                SizedBox(height: 20.0),
-                Text('Cors',
-                    style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.cors : ''),
-                SizedBox(height: 20.0),
-                Text('Link',
-                    style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.link : ''),
-                SizedBox(height: 20.0),
-                Text('Category',
-                    style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.category : ''),
-                SizedBox(height: 20.0),
-              ],
-            )));
+                children: <Widget>[
+                      Container(
+                          child: Text('Employee Id:',
+                              style: TextStyle(fontSize: 20.0, color: Colors.blue)),
+                          padding: EdgeInsets.all(10.0)),
+                      Container(
+                          child: TextFormField(
+                              validator: (value) {
+                                if (value.isEmpty) return 'Employee Id isEmpty';
+                                return null;
+                              },
+                              onSaved: (value) {
+                                _empId = value;
+                              },
+                              autovalidate: true),
+                          padding: EdgeInsets.all(10.0)),
+                      RaisedButton(
+                          child: Text('Get user info'),
+                          onPressed: _sendRequestGet,
+                          padding: EdgeInsets.all(10.0)),
+                      SizedBox(height: 20.0),
+                      Text('First Name',
+                          style: TextStyle(fontSize: 20.0, color: Colors.blue)),
+                      Text(_user != null ? _user.firstName : ''),
+                      SizedBox(height: 20.0),
+                      Text('Last Name',
+                          style: TextStyle(fontSize: 20.0, color: Colors.blue)),
+                      Text(_user != null && _user.lastName != null ? _user.lastName : ''),
+                      Text('Email:',
+                          style: TextStyle(fontSize: 20.0, color: Colors.blue)),
+                      Text(_user != null && _user.email != null ? _user.email : ''),
+                      Text('Avatar:',
+                          style: TextStyle(fontSize: 20.0, color: Colors.blue)),
+                      Image.network(_avatarUrl == null ? '' : _avatarUrl)
+                ],
+        )));
   } //build
 } //TestHttpState
 
