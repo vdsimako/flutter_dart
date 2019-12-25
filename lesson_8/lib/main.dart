@@ -89,7 +89,7 @@ class TestHttpState extends State<TestHttp> {
                 SizedBox(height: 20.0),
                 Text('HTTPS',
                     style: TextStyle(fontSize: 20.0, color: Colors.blue)),
-                Text(_entry != null ? _entry.https : ''),
+                Text(_entry != null ? _entry.https.toString() : ''),
                 SizedBox(height: 20.0),
                 Text('Cors',
                     style: TextStyle(fontSize: 20.0, color: Colors.blue)),
